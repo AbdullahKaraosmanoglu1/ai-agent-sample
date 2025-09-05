@@ -5,8 +5,8 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { CreateUserCommand } from '../../../core/application/commands/create-user.command';
 import { UpdateUserCommand } from '../../../core/application/commands/update-user.command';
 import { DeleteUserCommand } from '../../../core/application/commands/delete-user.command';
-import { GetUserByIdQuery } from '../../../core/application/queries/get-user-by-id.query';
-import { GetAllUsersQuery } from '../../../core/application/queries/get-all-users.query';
+import { GetUserByIdQuery } from '../../../core/application/users/queries/get-user-by-id/get-user-by-id.query';
+import { GetAllUsersQuery } from '../../../core/application/users/queries/get-all-users/get-all-users.query';
 
 @Controller('users')
 export class UsersController {

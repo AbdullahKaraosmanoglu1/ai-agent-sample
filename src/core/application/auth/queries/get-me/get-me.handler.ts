@@ -1,10 +1,10 @@
 import { QueryHandler, IQueryHandler } from '@nestjs/cqrs';
 import { NotFoundException, Inject } from '@nestjs/common';
 import { GetMeQuery } from './get-me.query';
-import type { IUserRepository } from '../../ports/user-repository.port';
-import { USER_REPOSITORY } from '../../ports/tokens';
-import { UserDto } from '../../dto/user.dto';
-import { UserMapper } from '../../mapping/user.mapper';
+import type { IUserRepository } from 'src/core/application/ports/user-repository.port';
+import { USER_REPOSITORY } from 'src/core/application/ports/tokens';
+import { UserDto } from 'src/core/application/dto/user.dto';
+import { UserMapper } from 'src/core/application/mapping/user.mapper';
 
 @QueryHandler(GetMeQuery)
 export class GetMeHandler implements IQueryHandler<GetMeQuery, UserDto> {

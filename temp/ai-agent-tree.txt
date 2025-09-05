@@ -1,0 +1,97 @@
+﻿ai-agent-sample-master
+├── prisma
+│   ├── migrations
+│   │   ├── 20250904131844_add_user
+│   │   │   └── migration.sql
+│   │   ├── 20250904142656_add_refresh_token_table
+│   │   │   └── migration.sql
+│   │   └── migration_lock.toml
+│   └── schema.prisma
+├── rules
+│   ├── Clean-Architecture-CQRS-Rules.md
+│   ├── prisma_basic_setup.md
+│   └── task-1.md
+├── src
+│   ├── core
+│   │   ├── application
+│   │   │   ├── auth
+│   │   │   │   ├── commands
+│   │   │   │   │   ├── login-user.command.ts
+│   │   │   │   │   ├── login-user.handler.ts
+│   │   │   │   │   ├── logout.command.ts
+│   │   │   │   │   ├── logout.handler.ts
+│   │   │   │   │   ├── refresh-token.command.ts
+│   │   │   │   │   ├── refresh-token.handler.ts
+│   │   │   │   │   ├── register-user.command.ts
+│   │   │   │   │   └── register-user.handler.ts
+│   │   │   │   └── queries
+│   │   │   │       ├── get-me.handler.ts
+│   │   │   │       └── get-me.query.ts
+│   │   │   ├── commands
+│   │   │   │   ├── create-user.command.ts
+│   │   │   │   ├── delete-user.command.ts
+│   │   │   │   └── update-user.command.ts
+│   │   │   ├── dto
+│   │   │   │   ├── auth-result.dto.ts
+│   │   │   │   └── user.dto.ts
+│   │   │   ├── handlers
+│   │   │   │   ├── create-user.handler.ts
+│   │   │   │   ├── delete-user.handler.ts
+│   │   │   │   ├── get-all-users.handler.ts
+│   │   │   │   ├── get-user-by-id.handler.ts
+│   │   │   │   └── update-user.handler.ts
+│   │   │   ├── mapping
+│   │   │   │   └── user.mapper.ts
+│   │   │   ├── ports
+│   │   │   │   ├── datetime.port.ts
+│   │   │   │   ├── password-hasher.port.ts
+│   │   │   │   ├── refresh-token-repository.port.ts
+│   │   │   │   ├── tokens.ts
+│   │   │   │   ├── token-service.port.ts
+│   │   │   │   └── user-repository.port.ts
+│   │   │   └── queries
+│   │   │       ├── get-all-users.query.ts
+│   │   │       └── get-user-by-id.query.ts
+│   │   ├── domain
+│   │   │   └── entities
+│   │   │       ├── refresh-token.ts
+│   │   │       └── user.ts
+│   │   └── infrastructure
+│   │       ├── prisma
+│   │       │   ├── prisma.module.ts
+│   │       │   └── prisma.service.ts
+│   │       ├── repositories
+│   │       │   ├── refresh-token.prisma.repository.ts
+│   │       │   └── user.prisma.repository.ts
+│   │       └── services
+│   │           ├── bcrypt-password-hasher.service.ts
+│   │           ├── jwt-token.service.ts
+│   │           └── system-datetime.ts
+│   ├── modules
+│   │   └── users
+│   │       ├── presentation
+│   │       │   ├── dto
+│   │       │   │   ├── create-user.dto.ts
+│   │       │   │   └── update-user.dto.ts
+│   │       │   └── users.controller.ts
+│   │       └── users.module.ts
+│   ├── app.controller.spec.ts
+│   ├── app.controller.ts
+│   ├── app.module.ts
+│   ├── app.service.ts
+│   ├── health.controller.ts
+│   └── main.ts
+├── test
+│   ├── app.e2e-spec.ts
+│   ├── health.e2e-spec.ts
+│   ├── jest-e2e.json
+│   └── users.e2e-spec.ts
+├── .gitignore
+├── .prettierrc
+├── eslint.config.mjs
+├── nest-cli.json
+├── package.json
+├── package-lock.json
+├── README.md
+├── tsconfig.build.json
+└── tsconfig.json

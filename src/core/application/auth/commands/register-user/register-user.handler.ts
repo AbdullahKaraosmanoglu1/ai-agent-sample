@@ -1,10 +1,10 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { ConflictException, Inject } from '@nestjs/common';
 import { RegisterUserCommand } from './register-user.command';
-import type { IUserRepository } from '../../ports/user-repository.port';
-import type { IPasswordHasher } from '../../ports/password-hasher.port';
-import { USER_REPOSITORY, PASSWORD_HASHER } from '../../ports/tokens';
-import { User } from '../../../domain/entities/user';
+import type { IUserRepository } from 'src/core/application/ports/user-repository.port';
+import type { IPasswordHasher } from 'src/core/application/ports/password-hasher.port';
+import { USER_REPOSITORY, PASSWORD_HASHER } from 'src/core/application/ports/tokens';
+import { User } from 'src/core/domain/entities/user';
 
 @CommandHandler(RegisterUserCommand)
 export class RegisterUserHandler implements ICommandHandler<RegisterUserCommand, string> {

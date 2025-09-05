@@ -1,8 +1,8 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { Inject } from '@nestjs/common';
 import { LogoutCommand } from './logout.command';
-import type { IRefreshTokenRepository } from '../../ports/refresh-token-repository.port';
-import { REFRESH_TOKEN_REPOSITORY } from '../../ports/tokens';
+import type { IRefreshTokenRepository } from 'src/core/application/ports/refresh-token-repository.port';
+import { REFRESH_TOKEN_REPOSITORY } from 'src/core/application/ports/tokens';
 
 @CommandHandler(LogoutCommand)
 export class LogoutHandler implements ICommandHandler<LogoutCommand, void> {
