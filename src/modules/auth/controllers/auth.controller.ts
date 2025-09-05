@@ -1,5 +1,6 @@
 import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { RegisterDto } from '../dto/register.dto';
 import { LoginDto } from '../dto/login.dto';
 import { RefreshTokenDto } from '../dto/refresh-token.dto';
@@ -13,6 +14,7 @@ import { CurrentUser } from '../decorators/current-user.decorator';
 import { Public } from '../decorators/public.decorator';
 import type { AuthResult } from '../../../core/application/models/auth-result.model';
 
+@ApiTags('auth')
 @Controller('auth')
 export class AuthController {
     constructor(
@@ -22,6 +24,23 @@ export class AuthController {
 
     @Public()
     @Post('register')
+    @ApiOperation({ summary: 'Register a new user' })
+    @ApiResponse({
+        status: 201,
+        description: 'User successfully registered',
+        schema: {
+            type: 'object',
+            properties: {
+                id: {
+                    type: 'string',
+                    description: 'The ID of the newly created user',
+                    example: '507f1f77bcf86cd799439011'
+                }
+            }
+        }
+    })
+    @ApiResponse({ status: 400, description: 'Bad request - Invalid input' })
+    @ApiResponse({ status: 409, description: 'Conflict - Email already exists' })
     async register(@Body() dto: RegisterDto): Promise<{ id: string }> {
         const id = await this.commandBus.execute(
             new RegisterUserCommand(dto.email, dto.password, dto.firstName, dto.lastName)
@@ -31,6 +50,25 @@ export class AuthController {
 
     @Public()
     @Post('login')
+    @ApiOperation({ summary: 'Login user and get tokens' })
+    @ApiResponse({
+        status: 201,
+        description: 'Login successful',
+        schema: {
+            type: 'object',
+            properties: {
+                accessToken: {
+                    type: 'string',
+                    description: 'JWT access token'
+                },
+                refreshToken: {
+                    type: 'string',
+                    description: 'JWT refresh token'
+                }
+            }
+        }
+    })
+    @ApiResponse({ status: 401, description: 'Unauthorized - Invalid credentials' })
     async login(@Body() dto: LoginDto): Promise<AuthResult> {
         return await this.commandBus.execute(
             new LoginUserCommand(dto.email, dto.password)
@@ -39,6 +77,26 @@ export class AuthController {
 
     @Post('refresh')
     @UseGuards(JwtRefreshGuard)
+    @ApiOperation({ summary: 'Refresh access token using refresh token' })
+    @ApiBearerAuth('access-token')
+    @ApiResponse({
+        status: 201,
+        description: 'Token refresh successful',
+        schema: {
+            type: 'object',
+            properties: {
+                accessToken: {
+                    type: 'string',
+                    description: 'New JWT access token'
+                },
+                refreshToken: {
+                    type: 'string',
+                    description: 'New JWT refresh token'
+                }
+            }
+        }
+    })
+    @ApiResponse({ status: 401, description: 'Unauthorized - Invalid refresh token' })
     async refresh(
         @Body() dto: RefreshTokenDto,
         @CurrentUser() userId: string,
@@ -52,6 +110,10 @@ export class AuthController {
     }
 
     @Post('logout')
+    @ApiBearerAuth('access-token')
+    @ApiOperation({ summary: 'Logout user and invalidate refresh token' })
+    @ApiResponse({ status: 200, description: 'Logout successful' })
+    @ApiResponse({ status: 401, description: 'Unauthorized - Invalid token' })
     async logout(
         @CurrentUser() userId: string,
         @Body() dto: RefreshTokenDto,
@@ -65,6 +127,34 @@ export class AuthController {
     }
 
     @Get('me')
+    @ApiBearerAuth('access-token')
+    @ApiOperation({ summary: 'Get current user information' })
+    @ApiResponse({
+        status: 200,
+        description: 'User information retrieved successfully',
+        schema: {
+            type: 'object',
+            properties: {
+                id: {
+                    type: 'string',
+                    description: 'User ID'
+                },
+                email: {
+                    type: 'string',
+                    description: 'User email'
+                },
+                firstName: {
+                    type: 'string',
+                    description: 'User first name'
+                },
+                lastName: {
+                    type: 'string',
+                    description: 'User last name'
+                }
+            }
+        }
+    })
+    @ApiResponse({ status: 401, description: 'Unauthorized - Invalid token' })
     async getMe(@CurrentUser() userId: string) {
         return await this.queryBus.execute(new GetMeQuery(userId));
     }

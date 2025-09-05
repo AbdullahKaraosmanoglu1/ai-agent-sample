@@ -17,10 +17,10 @@ describe('Authentication (e2e)', () => {
 
         app = moduleFixture.createNestApplication();
         prisma = app.get<PrismaService>(PrismaService);
-        
+
         // Clean database before tests
         await cleanDatabase(prisma);
-        
+
         await app.init();
     });
 
