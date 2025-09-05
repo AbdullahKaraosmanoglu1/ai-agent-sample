@@ -1,6 +1,21 @@
+export interface TokenPayload {
+    sub: string;
+    jti?: string;
+}
+
+export interface RefreshTokenResult {
+    token: string;
+    expiresIn: number;
+}
+
+export interface TokenVerifyResult {
+    sub: string;
+    jti?: string;
+}
+
 export interface ITokenService {
-    signAccessToken(payload: { sub: string }): Promise<string>;
-    signRefreshToken(payload: { sub: string; jti: string }): Promise<string>;
-    verifyAccessToken(token: string): Promise<{ sub: string }>;
-    verifyRefreshToken(token: string): Promise<{ sub: string; jti: string }>;
+    signAccessToken(payload: TokenPayload): Promise<string>;
+    signRefreshToken(payload: TokenPayload): Promise<string>;
+    verifyAccessToken(token: string): Promise<TokenVerifyResult>;
+    verifyRefreshToken(token: string): Promise<TokenVerifyResult>;
 }

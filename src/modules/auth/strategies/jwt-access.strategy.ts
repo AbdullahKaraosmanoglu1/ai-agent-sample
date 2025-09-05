@@ -13,8 +13,8 @@ export class JwtAccessStrategy extends PassportStrategy(Strategy, 'jwt-access') 
             jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
             ignoreExpiration: false,
             secretOrKey: secret,
-            issuer: config.get<string>('JWT_ISSUER'),
-            audience: config.get<string>('JWT_AUDIENCE'),
+            issuer: config.get<string>('JWT_ISSUER', 'aiAgentSample'),
+            audience: config.get<string>('JWT_AUDIENCE', 'aiAgentSample_api'),
         });
     }
 

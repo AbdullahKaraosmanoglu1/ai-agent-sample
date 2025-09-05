@@ -40,13 +40,19 @@ export class LoginUserHandler implements ICommandHandler<LoginUserCommand, AuthR
         // Generate access token
         const accessToken = await this.tokens.signAccessToken({ sub: user.id });
 
-        // Generate refresh token with JTI
-        const jti = randomUUID();
-        const refreshToken = await this.tokens.signRefreshToken({ sub: user.id, jti });
+        // Revoke all existing refresh tokens for this user
+        await this.refreshTokens.revokeAllForUser(user.id);
 
-        // Store refresh token in database
+        // Generate new refresh token with JTI and store in database
+        const jti = randomUUID();
         const expiresAt = this.dateTime.addDays(this.dateTime.now(), 14); // 14 days
         await this.refreshTokens.create(RefreshToken.createNew(jti, user.id, expiresAt));
+
+        // Get the token string
+        const refreshToken = await this.tokens.signRefreshToken({
+            sub: user.id,
+            jti: jti
+        });
 
         return {
             accessToken,

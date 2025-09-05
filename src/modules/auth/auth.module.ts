@@ -3,6 +3,8 @@ import { CqrsModule } from '@nestjs/cqrs';
 import { PassportModule } from '@nestjs/passport';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule, JwtService } from '@nestjs/jwt';
+import { ScheduleModule } from '@nestjs/schedule';
+import { CleanupRefreshTokensJob } from '../../core/infrastructure/jobs/cleanup-refresh-tokens.job';
 import { AuthController } from './controllers/auth.controller';
 import { JwtAccessStrategy } from './strategies/jwt-access.strategy';
 import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
@@ -40,16 +42,23 @@ const Strategies = [
     imports: [
         CqrsModule,
         PassportModule,
+        ScheduleModule.forRoot(),
         JwtModule.registerAsync({
             imports: [ConfigModule],
-            useFactory: async (config: ConfigService) => ({
-                secret: config.get<string>('JWT_ACCESS_SECRET'),
-                signOptions: {
-                    expiresIn: config.get<string>('JWT_ACCESS_EXPIRES_IN'),
-                    issuer: config.get<string>('JWT_ISSUER'),
-                    audience: config.get<string>('JWT_AUDIENCE'),
-                },
-            }),
+            useFactory: async (config: ConfigService) => {
+                const accessSecret = config.get<string>('JWT_ACCESS_SECRET');
+                if (!accessSecret) throw new Error('JWT_ACCESS_SECRET is not defined');
+
+                return {
+                    secret: accessSecret,
+                    global: true,
+                    signOptions: {
+                        expiresIn: '15m',
+                        issuer: config.get<string>('JWT_ISSUER', 'aiAgentSample'),
+                        audience: config.get<string>('JWT_AUDIENCE', 'aiAgentSample_api'),
+                    },
+                };
+            },
             inject: [ConfigService],
         }),
     ],
@@ -59,6 +68,7 @@ const Strategies = [
         ...QueryHandlers,
         ...Strategies,
         JwtService,
+        CleanupRefreshTokensJob,
         {
             provide: APP_GUARD,
             useClass: JwtAccessGuard,

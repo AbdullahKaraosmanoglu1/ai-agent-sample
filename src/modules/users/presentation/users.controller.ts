@@ -1,5 +1,6 @@
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
+import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { CreateUserCommand } from '../../../core/application/commands/create-user.command';
@@ -8,6 +9,8 @@ import { DeleteUserCommand } from '../../../core/application/commands/delete-use
 import { GetUserByIdQuery } from '../../../core/application/users/queries/get-user-by-id/get-user-by-id.query';
 import { GetAllUsersQuery } from '../../../core/application/users/queries/get-all-users/get-all-users.query';
 
+@ApiTags('users')
+@ApiBearerAuth('access-token')
 @Controller('users')
 export class UsersController {
     constructor(private readonly commandBus: CommandBus, private readonly queryBus: QueryBus) { }

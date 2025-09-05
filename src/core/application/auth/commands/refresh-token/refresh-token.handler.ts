@@ -24,6 +24,10 @@ export class RefreshTokenHandler implements ICommandHandler<RefreshTokenCommand,
         // Verify the refresh token
         const payload = await this.tokens.verifyRefreshToken(command.refreshToken);
 
+        if (!payload.jti) {
+            throw new UnauthorizedException('Invalid refresh token format');
+        }
+
         // Check if the token exists and is valid
         const token = await this.refreshTokens.findByJti(payload.jti);
         if (!token || !token.isValid()) {
