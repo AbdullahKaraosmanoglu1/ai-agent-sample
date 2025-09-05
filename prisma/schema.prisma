@@ -14,10 +14,20 @@ datasource db {
 }
 
 model User {
-  id          String   @id @default(cuid())
-  email       String   @unique
-  passwordHash String
-  firstName   String
-  lastName    String
-  createdAt   DateTime @default(now())
+  id            String         @id @default(cuid())
+  email         String         @unique
+  passwordHash   String
+  firstName     String
+  lastName      String
+  createdAt     DateTime       @default(now())
+  refreshTokens RefreshToken[]
+}
+
+model RefreshToken {
+  id        String   @id // jti
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  expiresAt DateTime
+  revoked   Boolean  @default(false)
+  createdAt DateTime @default(now())
 }
