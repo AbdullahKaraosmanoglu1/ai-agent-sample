@@ -4,11 +4,13 @@ import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { CreateUserDto } from '../src/modules/users/presentation/dto/create-user.dto';
 import { PrismaService } from '../src/core/infrastructure/prisma/prisma.service';
+import { cleanDatabase } from './helpers/database-cleaner';
 
 describe('UsersController (e2e)', () => {
     let app: INestApplication;
     let prisma: PrismaService;
     let createdUserId: string;
+    let accessToken: string;
     const testUser: CreateUserDto = {
         email: 'test@example.com',
         password: 'Test123!',
@@ -29,15 +31,29 @@ describe('UsersController (e2e)', () => {
 
         // Clean database before tests
         console.log('🧹 Cleaning test database...');
-        await prisma.user.deleteMany();
+        await cleanDatabase(prisma);
 
         await app.init();
+
+        // Register and login a test user to get the access token
+        const registerResponse = await request(app.getHttpServer())
+            .post('/auth/register')
+            .send(testUser);
+
+        const loginResponse = await request(app.getHttpServer())
+            .post('/auth/login')
+            .send({
+                email: testUser.email,
+                password: testUser.password
+            });
+
+        accessToken = loginResponse.body.accessToken;
         console.log('✅ Test environment is ready');
     });
 
     afterAll(async () => {
         console.log('🧹 Cleaning up test environment...');
-        await prisma.user.deleteMany();
+        await cleanDatabase(prisma);
         await prisma.$disconnect();
         await app.close();
         console.log('✅ Test environment cleaned up');
@@ -50,6 +66,7 @@ describe('UsersController (e2e)', () => {
 
             const response = await request(app.getHttpServer())
                 .post('/users')
+                .set('Authorization', `Bearer ${accessToken}`)
                 .send(testUser)
                 .expect(201);
 
@@ -65,6 +82,7 @@ describe('UsersController (e2e)', () => {
 
             const response = await request(app.getHttpServer())
                 .post('/users')
+                .set('Authorization', `Bearer ${accessToken}`)
                 .send(testUser)
                 .expect(409);
 
@@ -79,6 +97,7 @@ describe('UsersController (e2e)', () => {
 
             const response = await request(app.getHttpServer())
                 .get('/users/' + createdUserId)
+                .set('Authorization', `Bearer ${accessToken}`)
                 .expect(200);
 
             console.log('Retrieved user:', JSON.stringify(response.body, null, 2));
@@ -95,6 +114,7 @@ describe('UsersController (e2e)', () => {
 
             const response = await request(app.getHttpServer())
                 .get('/users/' + nonExistentId)
+                .set('Authorization', `Bearer ${accessToken}`)
                 .expect(404);
 
             console.log('Expected not found response:', JSON.stringify(response.body, null, 2));
@@ -107,6 +127,7 @@ describe('UsersController (e2e)', () => {
 
             const response = await request(app.getHttpServer())
                 .get('/users')
+                .set('Authorization', `Bearer ${accessToken}`)
                 .expect(200);
 
             console.log('Retrieved ' + response.body.length + ' users:');
@@ -128,6 +149,7 @@ describe('UsersController (e2e)', () => {
 
             const response = await request(app.getHttpServer())
                 .put('/users/' + createdUserId)
+                .set('Authorization', `Bearer ${accessToken}`)
                 .send(updateData)
                 .expect(200);
 
@@ -136,6 +158,7 @@ describe('UsersController (e2e)', () => {
             // Verify the update
             const updatedUser = await request(app.getHttpServer())
                 .get('/users/' + createdUserId)
+                .set('Authorization', `Bearer ${accessToken}`)
                 .expect(200);
 
             console.log('Retrieved updated user:', JSON.stringify(updatedUser.body, null, 2));
@@ -150,6 +173,7 @@ describe('UsersController (e2e)', () => {
 
             const response = await request(app.getHttpServer())
                 .put('/users/' + nonExistentId)
+                .set('Authorization', `Bearer ${accessToken}`)
                 .send({ firstName: 'Test' })
                 .expect(404);
 
@@ -164,6 +188,7 @@ describe('UsersController (e2e)', () => {
 
             await request(app.getHttpServer())
                 .delete('/users/' + createdUserId)
+                .set('Authorization', `Bearer ${accessToken}`)
                 .expect(200);
 
             console.log('User deleted successfully');

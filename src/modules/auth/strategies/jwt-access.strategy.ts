@@ -19,7 +19,7 @@ export class JwtAccessStrategy extends PassportStrategy(Strategy, 'jwt-access') 
     }
 
     validate(payload: any) {
-        // Return the payload which will be available in the Request
-        return payload;
+        // Return an object with userId that will be available in the Request
+        return { userId: payload.sub };
     }
 }
