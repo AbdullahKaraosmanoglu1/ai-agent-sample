@@ -8,7 +8,11 @@ import { UpdateUserNestHandler } from './presentation/handlers/update-user.nest-
 import { DeleteUserNestHandler } from './presentation/handlers/delete-user.nest-handler';
 import { UserPrismaRepository } from '../../core/infrastructure/repositories/user.prisma.repository';
 import { BcryptPasswordHasher } from '../../core/infrastructure/services/bcrypt-password-hasher.service';
-import { USER_REPOSITORY, PASSWORD_HASHER, LOGGER } from '../../core/application/ports/tokens';
+import {
+  USER_REPOSITORY,
+  PASSWORD_HASHER,
+  LOGGER,
+} from '../../core/application/ports/tokens';
 import type { IUserRepository } from '../../core/application/ports/user-repository.port';
 import type { IPasswordHasher } from '../../core/application/ports/password-hasher.port';
 import { PrismaModule } from '../../core/infrastructure/prisma/prisma.module';
@@ -16,38 +20,31 @@ import { LoggerAdapter } from '../../core/infrastructure/logging/logger.adapter'
 import { LoggingModule } from '../../core/infrastructure/logging/logging.module';
 
 const CommandHandlers = [
-    CreateUserNestHandler,
-    UpdateUserNestHandler,
-    DeleteUserNestHandler,
+  CreateUserNestHandler,
+  UpdateUserNestHandler,
+  DeleteUserNestHandler,
 ];
 
-const QueryHandlers = [
-    GetUserByIdNestHandler,
-    GetAllUsersNestHandler,
-];
+const QueryHandlers = [GetUserByIdNestHandler, GetAllUsersNestHandler];
 
 @Module({
-    imports: [
-        CqrsModule,
-        PrismaModule,
-        LoggingModule,
-    ],
-    controllers: [UsersController],
-    providers: [
-        ...CommandHandlers,
-        ...QueryHandlers,
-        {
-            provide: USER_REPOSITORY,
-            useClass: UserPrismaRepository,
-        },
-        {
-            provide: PASSWORD_HASHER,
-            useClass: BcryptPasswordHasher,
-        },
-        {
-            provide: LOGGER,
-            useClass: LoggerAdapter,
-        },
-    ],
+  imports: [CqrsModule, PrismaModule, LoggingModule],
+  controllers: [UsersController],
+  providers: [
+    ...CommandHandlers,
+    ...QueryHandlers,
+    {
+      provide: USER_REPOSITORY,
+      useClass: UserPrismaRepository,
+    },
+    {
+      provide: PASSWORD_HASHER,
+      useClass: BcryptPasswordHasher,
+    },
+    {
+      provide: LOGGER,
+      useClass: LoggerAdapter,
+    },
+  ],
 })
-export class UsersModule { }
+export class UsersModule {}

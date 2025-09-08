@@ -5,18 +5,18 @@ import { randomUUID } from 'crypto';
 
 @Global()
 @Module({
-    imports: [
-        ClsModule.forRoot({
-            middleware: {
-                mount: true,
-                generateId: true,
-                idGenerator: (req: Request) => {
-                    return req.headers['x-correlation-id'] as string || randomUUID();
-                },
-            },
-        }),
-    ],
-    providers: [LoggerService],
-    exports: [LoggerService],
+  imports: [
+    ClsModule.forRoot({
+      middleware: {
+        mount: true,
+        generateId: true,
+        idGenerator: (req: Request) => {
+          return (req.headers['x-correlation-id'] as string) || randomUUID();
+        },
+      },
+    }),
+  ],
+  providers: [LoggerService],
+  exports: [LoggerService],
 })
-export class LoggingModule { }
+export class LoggingModule {}
