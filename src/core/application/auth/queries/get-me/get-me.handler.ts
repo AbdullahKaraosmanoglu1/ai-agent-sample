@@ -1,23 +1,21 @@
-import { QueryHandler, IQueryHandler } from '@nestjs/cqrs';
 import { NotFoundException, Inject } from '@nestjs/common';
 import { GetMeQuery } from './get-me.query';
 import type { IUserRepository } from '../../../ports/user-repository.port';
 import { USER_REPOSITORY } from '../../../ports/tokens';
-import { UserDto } from '../../../dto/user.dto';
+import { UserOutput } from '../../../models/user.output';
 import { UserMapper } from '../../../mapping/user.mapper';
+import { AppErrorCodes } from '../../../errors/codes';
 
-@QueryHandler(GetMeQuery)
-export class GetMeHandler implements IQueryHandler<GetMeQuery, UserDto> {
+export class GetMeHandler {
     constructor(
-        @Inject(USER_REPOSITORY)
         private readonly users: IUserRepository,
     ) { }
 
-    async execute(query: GetMeQuery): Promise<UserDto> {
+    async execute(query: GetMeQuery): Promise<UserOutput> {
         const user = await this.users.findById(query.userId);
         if (!user) {
-            throw new NotFoundException(`User with id ${query.userId} not found`);
+            throw new Error(AppErrorCodes.USER_NOT_FOUND);
         }
-        return UserMapper.toDto(user);
+        return UserMapper.toOutput(user);
     }
 }

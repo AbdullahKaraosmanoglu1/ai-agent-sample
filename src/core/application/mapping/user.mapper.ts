@@ -1,9 +1,15 @@
 import { User } from '../../domain/entities/user';
-import { UserDto } from '../dto/user.dto';
+import { UserOutput } from '../models/user.output';
 
 export class UserMapper {
-    static toDto(user: User): UserDto {
-        return UserDto.from(user);
+    static toOutput(user: User): UserOutput {
+        return {
+            id: user.id,
+            email: user.email,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            createdAt: user.createdAt,
+        };
     }
 
     static toDomain(raw: any): User {

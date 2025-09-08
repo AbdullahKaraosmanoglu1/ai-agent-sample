@@ -1,22 +1,16 @@
-import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { UnauthorizedException, Inject } from '@nestjs/common';
 import { RefreshTokenCommand } from './refresh-token.command';
 import type { IRefreshTokenRepository } from '../../../ports/refresh-token-repository.port';
 import type { ITokenService } from '../../../ports/token-service.port';
 import type { IDateTime } from '../../../ports/datetime.port';
 import { AuthResultDto } from '../../../dto/auth-result.dto';
 import { RefreshToken } from '../../../../domain/entities/refresh-token';
-import { TOKEN_SERVICE, REFRESH_TOKEN_REPOSITORY, DATE_TIME } from '../../../ports/tokens';
 import { randomUUID } from 'crypto';
+import { AppErrorCodes } from '../../../errors/codes';
 
-@CommandHandler(RefreshTokenCommand)
-export class RefreshTokenHandler implements ICommandHandler<RefreshTokenCommand, AuthResultDto> {
+export class RefreshTokenHandler {
     constructor(
-        @Inject(TOKEN_SERVICE)
         private readonly tokens: ITokenService,
-        @Inject(REFRESH_TOKEN_REPOSITORY)
         private readonly refreshTokens: IRefreshTokenRepository,
-        @Inject(DATE_TIME)
         private readonly dateTime: IDateTime,
     ) { }
 
@@ -25,12 +19,12 @@ export class RefreshTokenHandler implements ICommandHandler<RefreshTokenCommand,
         const payload = await this.tokens.verifyRefreshToken(command.refreshToken);
 
         if (!payload.jti) {
-            throw new UnauthorizedException('Invalid refresh token format');
+            throw new Error(AppErrorCodes.AUTH_INVALID_REFRESH_TOKEN_FORMAT);
         }
 
         const token = await this.refreshTokens.findByJti(payload.jti);
         if (!token || !token.isValid()) {
-            throw new UnauthorizedException('Invalid refresh token');
+            throw new Error(AppErrorCodes.AUTH_INVALID_REFRESH_TOKEN);
         }
 
         await this.refreshTokens.revoke(payload.jti);

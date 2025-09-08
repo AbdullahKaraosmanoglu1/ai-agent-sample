@@ -1,5 +1,3 @@
-import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { UnauthorizedException, Inject } from '@nestjs/common';
 import { LoginUserCommand } from './login-user.command';
 
 import type { IUserRepository } from '../../../ports/user-repository.port';
@@ -19,32 +17,27 @@ import {
 } from '../../../ports/tokens';
 
 import { randomUUID } from 'crypto';
+import { AppErrorCodes } from '../../../errors/codes';
 
 
-@CommandHandler(LoginUserCommand)
-export class LoginUserHandler implements ICommandHandler<LoginUserCommand, AuthResultDto> {
+export class LoginUserHandler {
     constructor(
-        @Inject(USER_REPOSITORY)
         private readonly users: IUserRepository,
-        @Inject(PASSWORD_HASHER)
         private readonly hasher: IPasswordHasher,
-        @Inject(TOKEN_SERVICE)
         private readonly tokens: ITokenService,
-        @Inject(REFRESH_TOKEN_REPOSITORY)
         private readonly refreshTokens: IRefreshTokenRepository,
-        @Inject(DATE_TIME)
         private readonly dateTime: IDateTime,
     ) { }
 
     async execute(command: LoginUserCommand): Promise<AuthResultDto> {
         const user = await this.users.findByEmail(command.email);
         if (!user) {
-            throw new UnauthorizedException('Invalid credentials');
+            throw new Error(AppErrorCodes.AUTH_INVALID_CREDENTIALS);
         }
 
         const isValid = await this.hasher.verify(command.password, user.passwordHash);
         if (!isValid) {
-            throw new UnauthorizedException('Invalid credentials');
+            throw new Error(AppErrorCodes.AUTH_INVALID_CREDENTIALS);
         }
         const accessToken = await this.tokens.signAccessToken({ sub: user.id });
 

@@ -9,28 +9,30 @@ import { AuthController } from './controllers/auth.controller';
 import { JwtAccessStrategy } from './strategies/jwt-access.strategy';
 import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
 import { JwtAccessGuard } from './guards/jwt-access.guard';
-import { RegisterUserHandler } from '../../core/application/auth/commands/register-user/register-user.handler';
-import { LoginUserHandler } from '../../core/application/auth/commands/login-user/login-user.handler';
-import { RefreshTokenHandler } from '../../core/application/auth/commands/refresh-token/refresh-token.handler';
-import { LogoutHandler } from '../../core/application/auth/commands/logout/logout.handler';
-import { GetMeHandler } from '../../core/application/auth/queries/get-me/get-me.handler';
+import { RegisterUserNestHandler } from './handlers/register-user.nest-handler';
+import { LoginUserNestHandler } from './handlers/login-user.nest-handler';
+import { RefreshTokenNestHandler } from './handlers/refresh-token.nest-handler';
+import { LogoutNestHandler } from './handlers/logout.nest-handler';
+import { GetMeNestHandler } from './handlers/get-me.nest-handler';
 import { BcryptPasswordHasher } from '../../core/infrastructure/services/bcrypt-password-hasher.service';
 import { JwtTokenService } from '../../core/infrastructure/services/jwt-token.service';
 import { SystemDateTime } from '../../core/infrastructure/services/system-datetime';
 import { UserPrismaRepository } from '../../core/infrastructure/repositories/user.prisma.repository';
 import { RefreshTokenPrismaRepository } from '../../core/infrastructure/repositories/refresh-token.prisma.repository';
-import { PASSWORD_HASHER, TOKEN_SERVICE, USER_REPOSITORY, REFRESH_TOKEN_REPOSITORY, DATE_TIME } from '../../core/application/ports/tokens';
+import { PASSWORD_HASHER, TOKEN_SERVICE, USER_REPOSITORY, REFRESH_TOKEN_REPOSITORY, DATE_TIME, LOGGER } from '../../core/application/ports/tokens';
 import { APP_GUARD } from '@nestjs/core';
+import { LoggerAdapter } from '../../core/infrastructure/logging/logger.adapter';
+import { LoggingModule } from '../../core/infrastructure/logging/logging.module';
 
 const CommandHandlers = [
-    RegisterUserHandler,
-    LoginUserHandler,
-    RefreshTokenHandler,
-    LogoutHandler,
+    RegisterUserNestHandler,
+    LoginUserNestHandler,
+    RefreshTokenNestHandler,
+    LogoutNestHandler,
 ];
 
 const QueryHandlers = [
-    GetMeHandler,
+    GetMeNestHandler,
 ];
 
 const Strategies = [
@@ -42,6 +44,7 @@ const Strategies = [
     imports: [
         CqrsModule,
         PassportModule,
+        LoggingModule,
         ScheduleModule.forRoot(),
         JwtModule.registerAsync({
             imports: [ConfigModule],
@@ -92,6 +95,10 @@ const Strategies = [
         {
             provide: DATE_TIME,
             useClass: SystemDateTime,
+        },
+        {
+            provide: LOGGER,
+            useClass: LoggerAdapter,
         },
     ],
     exports: [PassportModule],

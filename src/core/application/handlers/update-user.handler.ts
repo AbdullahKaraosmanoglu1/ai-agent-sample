@@ -1,24 +1,21 @@
-import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { UpdateUserCommand } from '../commands/update-user.command';
 import type { IUserRepository } from '../ports/user-repository.port';
 import { NotFoundException, Inject } from '@nestjs/common';
 import type { IPasswordHasher } from '../ports/password-hasher.port';
 import { User } from '../../domain/entities/user';
 import { USER_REPOSITORY, PASSWORD_HASHER } from '../ports/tokens';
+import { AppErrorCodes } from '../errors/codes';
 
-@CommandHandler(UpdateUserCommand)
-export class UpdateUserHandler implements ICommandHandler<UpdateUserCommand, void> {
+export class UpdateUserHandler {
     constructor(
-        @Inject(USER_REPOSITORY)
         private readonly users: IUserRepository,
-        @Inject(PASSWORD_HASHER)
         private readonly hasher: IPasswordHasher,
     ) { }
 
     async execute(command: UpdateUserCommand): Promise<void> {
         const user = await this.users.findById(command.id);
         if (!user) {
-            throw new NotFoundException(`User with id ${command.id} not found`);
+            throw new Error(AppErrorCodes.USER_NOT_FOUND);
         }
 
         const updateData: any = {};
