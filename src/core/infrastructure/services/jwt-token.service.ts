@@ -61,4 +61,20 @@ export class JwtTokenService implements ITokenService {
             jti: refreshToken.id
         };
     }
+
+    getAccessTokenTtlSeconds(): number {
+        const raw = this.getAccessTokenOptions().expiresIn as string;
+        // naive parse '15m' | '900s'
+        const m = /^([0-9]+)\s*([smhd])$/.exec(raw);
+        if (!m) return 900;
+        const n = parseInt(m[1], 10);
+        const unit = m[2];
+        switch (unit) {
+            case 's': return n;
+            case 'm': return n * 60;
+            case 'h': return n * 3600;
+            case 'd': return n * 86400;
+            default: return 900;
+        }
+    }
 }

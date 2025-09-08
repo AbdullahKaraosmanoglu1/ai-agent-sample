@@ -18,4 +18,5 @@ export interface ITokenService {
     signRefreshToken(payload: TokenPayload): Promise<string>;
     verifyAccessToken(token: string): Promise<TokenVerifyResult>;
     verifyRefreshToken(token: string): Promise<TokenVerifyResult>;
+    getAccessTokenTtlSeconds(): number;
 }

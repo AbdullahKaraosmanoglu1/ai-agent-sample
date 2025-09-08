@@ -1,4 +1,3 @@
-import { ConflictException, Inject } from '@nestjs/common';
 import { RegisterUserCommand } from './register-user.command';
 import type { IUserRepository } from '../../../ports/user-repository.port';
 import type { IPasswordHasher } from '../../../ports/password-hasher.port';

@@ -4,7 +4,8 @@ import { CreateUserCommand } from '../../../../core/application/commands/create-
 import { CreateUserHandler as AppCreateUserHandler } from '../../../../core/application/handlers/create-user.handler';
 import type { IUserRepository } from '../../../../core/application/ports/user-repository.port';
 import type { IPasswordHasher } from '../../../../core/application/ports/password-hasher.port';
-import { USER_REPOSITORY, PASSWORD_HASHER } from '../../../../core/application/ports/tokens';
+import { USER_REPOSITORY, PASSWORD_HASHER, LOGGER } from '../../../../core/application/ports/tokens';
+import type { ILogger } from '../../../../core/application/ports/logger.port';
 
 @CommandHandler(CreateUserCommand)
 export class CreateUserNestHandler implements ICommandHandler<CreateUserCommand, string> {
@@ -13,8 +14,9 @@ export class CreateUserNestHandler implements ICommandHandler<CreateUserCommand,
     constructor(
         @Inject(USER_REPOSITORY) users: IUserRepository,
         @Inject(PASSWORD_HASHER) hasher: IPasswordHasher,
+        @Inject(LOGGER) logger: ILogger,
     ) {
-        this.appHandler = new AppCreateUserHandler(users, hasher);
+        this.appHandler = new AppCreateUserHandler(users, hasher, logger);
     }
 
     async execute(command: CreateUserCommand): Promise<string> {

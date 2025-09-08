@@ -1,6 +1,7 @@
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { UserResponseDto } from './dto/user.response.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { CreateUserCommand } from '../../../core/application/commands/create-user.command';
@@ -22,13 +23,17 @@ export class UsersController {
     }
 
     @Get(':id')
-    async get(@Param('id') id: string) {
-        return await this.queryBus.execute(new GetUserByIdQuery(id));
+    @ApiResponse({ status: 200, type: UserResponseDto })
+    async get(@Param('id') id: string): Promise<UserResponseDto> {
+        const output = await this.queryBus.execute(new GetUserByIdQuery(id));
+        return UserResponseDto.fromOutput(output);
     }
 
     @Get()
-    async getAll() {
-        return await this.queryBus.execute(new GetAllUsersQuery());
+    @ApiResponse({ status: 200, type: [UserResponseDto] })
+    async getAll(): Promise<UserResponseDto[]> {
+        const outputs = await this.queryBus.execute(new GetAllUsersQuery());
+        return outputs.map(UserResponseDto.fromOutput);
     }
 
     @Put(':id')

@@ -1,29 +1,32 @@
 import { QueryHandler, IQueryHandler } from '@nestjs/cqrs';
 import { Inject } from '@nestjs/common';
+
 import { GetAllUsersQuery } from '../../../../core/application/users/queries/get-all-users/get-all-users.query';
 import { GetAllUsersHandler as AppGetAllUsersHandler } from '../../../../core/application/users/queries/get-all-users/get-all-users.handler';
+
 import type { IUserRepository } from '../../../../core/application/ports/user-repository.port';
-import { USER_REPOSITORY } from '../../../../core/application/ports/tokens';
-import type { UserDto } from '../../../../core/application/dto/user.dto';
+import type { ILogger } from '../../../../core/application/ports/logger.port';
+import { USER_REPOSITORY, LOGGER } from '../../../../core/application/ports/tokens';
+
+import type { UserOutput } from '../../../../core/application/models/user.output';
+import { mapAppErrorToHttp } from '../../../shared/error-mapper.js';
 
 @QueryHandler(GetAllUsersQuery)
-export class GetAllUsersNestHandler implements IQueryHandler<GetAllUsersQuery, UserDto[]> {
+export class GetAllUsersNestHandler implements IQueryHandler<GetAllUsersQuery, UserOutput[]> {
     private readonly appHandler: AppGetAllUsersHandler;
 
     constructor(
         @Inject(USER_REPOSITORY) users: IUserRepository,
+        @Inject(LOGGER) private readonly logger: ILogger,
     ) {
-        this.appHandler = new AppGetAllUsersHandler(users);
+        this.appHandler = new AppGetAllUsersHandler(users, this.logger);
     }
 
-    async execute(): Promise<UserDto[]> {
+    async execute(): Promise<UserOutput[]> {
         try {
             return await this.appHandler.execute();
         } catch (error: any) {
-            const { mapAppErrorToHttp } = await import('../../../shared/error-mapper.js');
-            mapAppErrorToHttp(error);
+            throw mapAppErrorToHttp(error);
         }
     }
 }
-
-

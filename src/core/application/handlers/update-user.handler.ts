@@ -1,18 +1,20 @@
 import { UpdateUserCommand } from '../commands/update-user.command';
 import type { IUserRepository } from '../ports/user-repository.port';
-import { NotFoundException, Inject } from '@nestjs/common';
 import type { IPasswordHasher } from '../ports/password-hasher.port';
 import { User } from '../../domain/entities/user';
 import { USER_REPOSITORY, PASSWORD_HASHER } from '../ports/tokens';
+import type { ILogger } from '../ports/logger.port';
 import { AppErrorCodes } from '../errors/codes';
 
 export class UpdateUserHandler {
     constructor(
         private readonly users: IUserRepository,
         private readonly hasher: IPasswordHasher,
+        private readonly logger: ILogger,
     ) { }
 
     async execute(command: UpdateUserCommand): Promise<void> {
+        this.logger.setComponent('UpdateUserHandler');
         const user = await this.users.findById(command.id);
         if (!user) {
             throw new Error(AppErrorCodes.USER_NOT_FOUND);
@@ -26,9 +28,10 @@ export class UpdateUserHandler {
             updateData.passwordHash = await this.hasher.hash(command.dto.password);
         }
 
-        await this.users.update(User.rehydrate({
+        const updated = await this.users.update(User.rehydrate({
             ...user,
             ...updateData
         }));
+        this.logger.info('User updated', { userId: updated.id, fields: Object.keys(updateData) });
     }
 }

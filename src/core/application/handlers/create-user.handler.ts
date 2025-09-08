@@ -1,18 +1,20 @@
 import { CreateUserCommand } from '../commands/create-user.command';
 import type { IUserRepository } from '../ports/user-repository.port';
 import { User } from '../../domain/entities/user';
-import { ConflictException, Inject } from '@nestjs/common';
 import type { IPasswordHasher } from '../ports/password-hasher.port';
 import { USER_REPOSITORY, PASSWORD_HASHER } from '../ports/tokens';
+import type { ILogger } from '../ports/logger.port';
 import { AppErrorCodes } from '../errors/codes';
 
 export class CreateUserHandler {
     constructor(
         private readonly users: IUserRepository,
         private readonly hasher: IPasswordHasher,
+        private readonly logger: ILogger,
     ) { }
 
     async execute(command: CreateUserCommand): Promise<string> {
+        this.logger.setComponent('CreateUserHandler');
         const existingUser = await this.users.findByEmail(command.email);
         if (existingUser) {
             throw new Error(AppErrorCodes.USER_EMAIL_EXISTS);

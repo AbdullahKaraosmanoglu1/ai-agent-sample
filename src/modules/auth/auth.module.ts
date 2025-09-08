@@ -19,10 +19,11 @@ import { JwtTokenService } from '../../core/infrastructure/services/jwt-token.se
 import { SystemDateTime } from '../../core/infrastructure/services/system-datetime';
 import { UserPrismaRepository } from '../../core/infrastructure/repositories/user.prisma.repository';
 import { RefreshTokenPrismaRepository } from '../../core/infrastructure/repositories/refresh-token.prisma.repository';
-import { PASSWORD_HASHER, TOKEN_SERVICE, USER_REPOSITORY, REFRESH_TOKEN_REPOSITORY, DATE_TIME, LOGGER } from '../../core/application/ports/tokens';
+import { PASSWORD_HASHER, TOKEN_SERVICE, USER_REPOSITORY, REFRESH_TOKEN_REPOSITORY, DATE_TIME, LOGGER, UNIT_OF_WORK } from '../../core/application/ports/tokens';
 import { APP_GUARD } from '@nestjs/core';
 import { LoggerAdapter } from '../../core/infrastructure/logging/logger.adapter';
 import { LoggingModule } from '../../core/infrastructure/logging/logging.module';
+import { PrismaUnitOfWork } from '../../core/infrastructure/prisma/prisma-unit-of-work';
 
 const CommandHandlers = [
     RegisterUserNestHandler,
@@ -99,6 +100,10 @@ const Strategies = [
         {
             provide: LOGGER,
             useClass: LoggerAdapter,
+        },
+        {
+            provide: UNIT_OF_WORK,
+            useClass: PrismaUnitOfWork,
         },
     ],
     exports: [PassportModule],

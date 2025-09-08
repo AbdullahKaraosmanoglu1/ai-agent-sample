@@ -13,6 +13,7 @@ import { JwtRefreshGuard } from '../guards/jwt-refresh.guard';
 import { CurrentUser } from '../decorators/current-user.decorator';
 import { Public } from '../decorators/public.decorator';
 import type { AuthResult } from '../../../core/application/models/auth-result.model';
+import { AuthResponseDto } from '../dto/auth.response.dto';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -69,10 +70,11 @@ export class AuthController {
         }
     })
     @ApiResponse({ status: 401, description: 'Unauthorized - Invalid credentials' })
-    async login(@Body() dto: LoginDto): Promise<AuthResult> {
-        return await this.commandBus.execute(
+    async login(@Body() dto: LoginDto): Promise<AuthResponseDto> {
+        const result = await this.commandBus.execute(
             new LoginUserCommand(dto.email, dto.password)
         );
+        return AuthResponseDto.fromResult(result);
     }
 
     @Post('refresh')
@@ -100,13 +102,14 @@ export class AuthController {
     async refresh(
         @Body() dto: RefreshTokenDto,
         @CurrentUser() userId: string,
-    ): Promise<AuthResult> {
+    ): Promise<AuthResponseDto> {
         if (!dto.refreshToken) {
             throw new Error('Refresh token is required');
         }
-        return await this.commandBus.execute(
+        const result = await this.commandBus.execute(
             new RefreshTokenCommand(dto.refreshToken)
         );
+        return AuthResponseDto.fromResult(result);
     }
 
     @Post('logout')
