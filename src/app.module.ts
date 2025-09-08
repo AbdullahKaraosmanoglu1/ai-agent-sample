@@ -15,7 +15,7 @@ import { DebugModule } from './modules/debug/debug.module';
     PrismaModule,
     AuthModule,
     UsersModule,
-    DebugModule
+    DebugModule,
   ],
 })
-export class AppModule { }
+export class AppModule {}

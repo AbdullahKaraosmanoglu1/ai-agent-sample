@@ -4,21 +4,24 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
-export class JwtAccessStrategy extends PassportStrategy(Strategy, 'jwt-access') {
-    constructor(private readonly config: ConfigService) {
-        const secret = config.get<string>('JWT_ACCESS_SECRET');
-        if (!secret) throw new Error('JWT_ACCESS_SECRET is not defined');
+export class JwtAccessStrategy extends PassportStrategy(
+  Strategy,
+  'jwt-access',
+) {
+  constructor(private readonly config: ConfigService) {
+    const secret = config.get<string>('JWT_ACCESS_SECRET');
+    if (!secret) throw new Error('JWT_ACCESS_SECRET is not defined');
 
-        super({
-            jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-            ignoreExpiration: false,
-            secretOrKey: secret,
-            issuer: config.get<string>('JWT_ISSUER', 'aiAgentSample'),
-            audience: config.get<string>('JWT_AUDIENCE', 'aiAgentSample_api'),
-        });
-    }
+    super({
+      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      ignoreExpiration: false,
+      secretOrKey: secret,
+      issuer: config.get<string>('JWT_ISSUER', 'aiAgentSample'),
+      audience: config.get<string>('JWT_AUDIENCE', 'aiAgentSample_api'),
+    });
+  }
 
-    validate(payload: any) {
-        return { userId: payload.sub };
-    }
+  validate(payload: any) {
+    return { userId: payload.sub };
+  }
 }

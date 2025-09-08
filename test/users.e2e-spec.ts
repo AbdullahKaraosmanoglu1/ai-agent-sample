@@ -7,207 +7,222 @@ import { PrismaService } from '../src/core/infrastructure/prisma/prisma.service'
 import { cleanDatabase } from './helpers/database-cleaner';
 
 describe('UsersController (e2e)', () => {
-    let app: INestApplication;
-    let prisma: PrismaService;
-    let createdUserId: string;
-    let accessToken: string;
-    const testUser: CreateUserDto = {
-        email: 'test@example.com',
-        password: 'Test123!',
-        firstName: 'Test',
-        lastName: 'User'
-    };
+  let app: INestApplication;
+  let prisma: PrismaService;
+  let createdUserId: string;
+  let accessToken: string;
+  const testUser: CreateUserDto = {
+    email: 'test@example.com',
+    password: 'Test123!',
+    firstName: 'Test',
+    lastName: 'User',
+  };
 
-    beforeAll(async () => {
-        console.log('🚀 Starting Users E2E Tests');
-        console.log('⚙️ Setting up test environment...');
+  beforeAll(async () => {
+    console.log('🚀 Starting Users E2E Tests');
+    console.log('⚙️ Setting up test environment...');
 
-        const moduleFixture: TestingModule = await Test.createTestingModule({
-            imports: [AppModule],
-        }).compile();
+    const moduleFixture: TestingModule = await Test.createTestingModule({
+      imports: [AppModule],
+    }).compile();
 
-        app = moduleFixture.createNestApplication();
-        prisma = app.get<PrismaService>(PrismaService);
+    app = moduleFixture.createNestApplication();
+    prisma = app.get<PrismaService>(PrismaService);
 
-        console.log('🧹 Cleaning test database...');
-        await cleanDatabase(prisma);
+    console.log('🧹 Cleaning test database...');
+    await cleanDatabase(prisma);
 
-        await app.init();
+    await app.init();
 
-        const registerResponse = await request(app.getHttpServer())
-            .post('/auth/register')
-            .send(testUser);
+    const registerResponse = await request(app.getHttpServer())
+      .post('/auth/register')
+      .send(testUser);
 
-        const loginResponse = await request(app.getHttpServer())
-            .post('/auth/login')
-            .send({
-                email: testUser.email,
-                password: testUser.password
-            });
+    const loginResponse = await request(app.getHttpServer())
+      .post('/auth/login')
+      .send({
+        email: testUser.email,
+        password: testUser.password,
+      });
 
-        accessToken = loginResponse.body.accessToken;
-        console.log('✅ Test environment is ready');
+    accessToken = loginResponse.body.accessToken;
+    console.log('✅ Test environment is ready');
+  });
+
+  afterAll(async () => {
+    console.log('🧹 Cleaning up test environment...');
+    await cleanDatabase(prisma);
+    await prisma.$disconnect();
+    await app.close();
+    console.log('✅ Test environment cleaned up');
+  });
+
+  describe('POST /users', () => {
+    it('should create a new user', async () => {
+      console.log('📝 Testing user creation...');
+      console.log('Input:', JSON.stringify(testUser, null, 2));
+
+      const response = await request(app.getHttpServer())
+        .post('/users')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send(testUser)
+        .expect(201);
+
+      console.log('Response:', JSON.stringify(response.body, null, 2));
+      expect(response.body.id).toBeDefined();
+      createdUserId = response.body.id;
+      console.log('✅ User created successfully with ID:', createdUserId);
     });
 
-    afterAll(async () => {
-        console.log('🧹 Cleaning up test environment...');
-        await cleanDatabase(prisma);
-        await prisma.$disconnect();
-        await app.close();
-        console.log('✅ Test environment cleaned up');
+    it('should not create user with duplicate email', async () => {
+      console.log('🔄 Testing duplicate email prevention...');
+      console.log('Attempting to create user with email:', testUser.email);
+
+      const response = await request(app.getHttpServer())
+        .post('/users')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send(testUser)
+        .expect(409);
+
+      console.log(
+        'Expected conflict response:',
+        JSON.stringify(response.body, null, 2),
+      );
+    });
+  });
+
+  describe('GET /users/:id', () => {
+    it('should get user by id', async () => {
+      console.log('🔍 Testing get user by ID...');
+      console.log('Looking up user with ID:', createdUserId);
+
+      const response = await request(app.getHttpServer())
+        .get('/users/' + createdUserId)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(200);
+
+      console.log('Retrieved user:', JSON.stringify(response.body, null, 2));
+      expect(response.body.email).toBe(testUser.email);
+      expect(response.body.firstName).toBe(testUser.firstName);
+      expect(response.body.lastName).toBe(testUser.lastName);
+      expect(response.body.passwordHash).toBeUndefined();
     });
 
-    describe('POST /users', () => {
-        it('should create a new user', async () => {
-            console.log('📝 Testing user creation...');
-            console.log('Input:', JSON.stringify(testUser, null, 2));
+    it('should return 404 for non-existent user', async () => {
+      const nonExistentId = '123456789012345678901234';
+      console.log('🔍 Testing non-existent user lookup...');
+      console.log('Attempting to find user with ID:', nonExistentId);
 
-            const response = await request(app.getHttpServer())
-                .post('/users')
-                .set('Authorization', `Bearer ${accessToken}`)
-                .send(testUser)
-                .expect(201);
+      const response = await request(app.getHttpServer())
+        .get('/users/' + nonExistentId)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(404);
 
-            console.log('Response:', JSON.stringify(response.body, null, 2));
-            expect(response.body.id).toBeDefined();
-            createdUserId = response.body.id;
-            console.log('✅ User created successfully with ID:', createdUserId);
-        });
+      console.log(
+        'Expected not found response:',
+        JSON.stringify(response.body, null, 2),
+      );
+    });
+  });
 
-        it('should not create user with duplicate email', async () => {
-            console.log('🔄 Testing duplicate email prevention...');
-            console.log('Attempting to create user with email:', testUser.email);
+  describe('GET /users', () => {
+    it('should get all users', async () => {
+      console.log('📋 Testing get all users...');
 
-            const response = await request(app.getHttpServer())
-                .post('/users')
-                .set('Authorization', `Bearer ${accessToken}`)
-                .send(testUser)
-                .expect(409);
+      const response = await request(app.getHttpServer())
+        .get('/users')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(200);
 
-            console.log('Expected conflict response:', JSON.stringify(response.body, null, 2));
-        });
+      console.log('Retrieved ' + response.body.length + ' users:');
+      console.log(JSON.stringify(response.body, null, 2));
+      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('PUT /users/:id', () => {
+    it('should update user', async () => {
+      const updateData = {
+        firstName: 'Updated',
+        lastName: 'Name',
+      };
+      console.log('✏️ Testing user update...');
+      console.log('Updating user ID:', createdUserId);
+      console.log('Update data:', JSON.stringify(updateData, null, 2));
+
+      const response = await request(app.getHttpServer())
+        .put('/users/' + createdUserId)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send(updateData)
+        .expect(200);
+
+      console.log('Update response:', JSON.stringify(response.body, null, 2));
+
+      const updatedUser = await request(app.getHttpServer())
+        .get('/users/' + createdUserId)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(200);
+
+      console.log(
+        'Retrieved updated user:',
+        JSON.stringify(updatedUser.body, null, 2),
+      );
+      expect(updatedUser.body.firstName).toBe(updateData.firstName);
+      expect(updatedUser.body.lastName).toBe(updateData.lastName);
     });
 
-    describe('GET /users/:id', () => {
-        it('should get user by id', async () => {
-            console.log('🔍 Testing get user by ID...');
-            console.log('Looking up user with ID:', createdUserId);
+    it('should return 404 when updating non-existent user', async () => {
+      const nonExistentId = '123456789012345678901234';
+      console.log('✏️ Testing update of non-existent user...');
+      console.log('Attempting to update user with ID:', nonExistentId);
 
-            const response = await request(app.getHttpServer())
-                .get('/users/' + createdUserId)
-                .set('Authorization', `Bearer ${accessToken}`)
-                .expect(200);
+      const response = await request(app.getHttpServer())
+        .put('/users/' + nonExistentId)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({ firstName: 'Test' })
+        .expect(404);
 
-            console.log('Retrieved user:', JSON.stringify(response.body, null, 2));
-            expect(response.body.email).toBe(testUser.email);
-            expect(response.body.firstName).toBe(testUser.firstName);
-            expect(response.body.lastName).toBe(testUser.lastName);
-            expect(response.body.passwordHash).toBeUndefined();
-        });
+      console.log(
+        'Expected not found response:',
+        JSON.stringify(response.body, null, 2),
+      );
+    });
+  });
 
-        it('should return 404 for non-existent user', async () => {
-            const nonExistentId = '123456789012345678901234';
-            console.log('🔍 Testing non-existent user lookup...');
-            console.log('Attempting to find user with ID:', nonExistentId);
+  describe('DELETE /users/:id', () => {
+    it('should delete user', async () => {
+      console.log('🗑️ Testing user deletion...');
+      console.log('Deleting user with ID:', createdUserId);
 
-            const response = await request(app.getHttpServer())
-                .get('/users/' + nonExistentId)
-                .set('Authorization', `Bearer ${accessToken}`)
-                .expect(404);
+      await request(app.getHttpServer())
+        .delete('/users/' + createdUserId)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(200);
 
-            console.log('Expected not found response:', JSON.stringify(response.body, null, 2));
-        });
+      console.log('User deleted successfully');
+
+      console.log('Verifying user deletion...');
+      await request(app.getHttpServer())
+        .get('/users/' + createdUserId)
+        .expect(404);
+
+      console.log('✅ Verified: User no longer exists');
     });
 
-    describe('GET /users', () => {
-        it('should get all users', async () => {
-            console.log('📋 Testing get all users...');
+    it('should return 404 when deleting non-existent user', async () => {
+      const nonExistentId = '123456789012345678901234';
+      console.log('🗑️ Testing deletion of non-existent user...');
+      console.log('Attempting to delete user with ID:', nonExistentId);
 
-            const response = await request(app.getHttpServer())
-                .get('/users')
-                .set('Authorization', `Bearer ${accessToken}`)
-                .expect(200);
+      const response = await request(app.getHttpServer())
+        .delete('/users/' + nonExistentId)
+        .expect(404);
 
-            console.log('Retrieved ' + response.body.length + ' users:');
-            console.log(JSON.stringify(response.body, null, 2));
-            expect(Array.isArray(response.body)).toBe(true);
-            expect(response.body.length).toBeGreaterThan(0);
-        });
+      console.log(
+        'Expected not found response:',
+        JSON.stringify(response.body, null, 2),
+      );
     });
-
-    describe('PUT /users/:id', () => {
-        it('should update user', async () => {
-            const updateData = {
-                firstName: 'Updated',
-                lastName: 'Name'
-            };
-            console.log('✏️ Testing user update...');
-            console.log('Updating user ID:', createdUserId);
-            console.log('Update data:', JSON.stringify(updateData, null, 2));
-
-            const response = await request(app.getHttpServer())
-                .put('/users/' + createdUserId)
-                .set('Authorization', `Bearer ${accessToken}`)
-                .send(updateData)
-                .expect(200);
-
-            console.log('Update response:', JSON.stringify(response.body, null, 2));
-
-            const updatedUser = await request(app.getHttpServer())
-                .get('/users/' + createdUserId)
-                .set('Authorization', `Bearer ${accessToken}`)
-                .expect(200);
-
-            console.log('Retrieved updated user:', JSON.stringify(updatedUser.body, null, 2));
-            expect(updatedUser.body.firstName).toBe(updateData.firstName);
-            expect(updatedUser.body.lastName).toBe(updateData.lastName);
-        });
-
-        it('should return 404 when updating non-existent user', async () => {
-            const nonExistentId = '123456789012345678901234';
-            console.log('✏️ Testing update of non-existent user...');
-            console.log('Attempting to update user with ID:', nonExistentId);
-
-            const response = await request(app.getHttpServer())
-                .put('/users/' + nonExistentId)
-                .set('Authorization', `Bearer ${accessToken}`)
-                .send({ firstName: 'Test' })
-                .expect(404);
-
-            console.log('Expected not found response:', JSON.stringify(response.body, null, 2));
-        });
-    });
-
-    describe('DELETE /users/:id', () => {
-        it('should delete user', async () => {
-            console.log('🗑️ Testing user deletion...');
-            console.log('Deleting user with ID:', createdUserId);
-
-            await request(app.getHttpServer())
-                .delete('/users/' + createdUserId)
-                .set('Authorization', `Bearer ${accessToken}`)
-                .expect(200);
-
-            console.log('User deleted successfully');
-
-            console.log('Verifying user deletion...');
-            await request(app.getHttpServer())
-                .get('/users/' + createdUserId)
-                .expect(404);
-
-            console.log('✅ Verified: User no longer exists');
-        });
-
-        it('should return 404 when deleting non-existent user', async () => {
-            const nonExistentId = '123456789012345678901234';
-            console.log('🗑️ Testing deletion of non-existent user...');
-            console.log('Attempting to delete user with ID:', nonExistentId);
-
-            const response = await request(app.getHttpServer())
-                .delete('/users/' + nonExistentId)
-                .expect(404);
-
-            console.log('Expected not found response:', JSON.stringify(response.body, null, 2));
-        });
-    });
+  });
 });

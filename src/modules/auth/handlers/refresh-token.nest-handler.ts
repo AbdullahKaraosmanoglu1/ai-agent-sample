@@ -7,32 +7,44 @@ import type { ITokenService } from '../../../core/application/ports/token-servic
 import type { IRefreshTokenRepository } from '../../../core/application/ports/refresh-token-repository.port';
 import type { IDateTime } from '../../../core/application/ports/datetime.port';
 import type { IUnitOfWork } from '../../../core/application/ports/unit-of-work.port';
-import { TOKEN_SERVICE, REFRESH_TOKEN_REPOSITORY, DATE_TIME, UNIT_OF_WORK, LOGGER } from '../../../core/application/ports/tokens';
+import {
+  TOKEN_SERVICE,
+  REFRESH_TOKEN_REPOSITORY,
+  DATE_TIME,
+  UNIT_OF_WORK,
+  LOGGER,
+} from '../../../core/application/ports/tokens';
 import type { ILogger } from '../../../core/application/ports/logger.port';
-import type { AuthResultDto } from '../../../core/application/dto/auth-result.dto';
+import type { AuthResultDto } from '../../../core/application/auth/dto/auth-result.dto';
 
 @CommandHandler(RefreshTokenCommand)
-export class RefreshTokenNestHandler implements ICommandHandler<RefreshTokenCommand, AuthResultDto> {
-    private readonly appHandler: AppRefreshTokenHandler;
+export class RefreshTokenNestHandler
+  implements ICommandHandler<RefreshTokenCommand, AuthResultDto>
+{
+  private readonly appHandler: AppRefreshTokenHandler;
 
-    constructor(
-        @Inject(TOKEN_SERVICE) tokens: ITokenService,
-        @Inject(REFRESH_TOKEN_REPOSITORY) refreshTokens: IRefreshTokenRepository,
-        @Inject(DATE_TIME) dateTime: IDateTime,
-        @Inject(UNIT_OF_WORK) uow: IUnitOfWork,
-        @Inject(LOGGER) logger: ILogger,
-    ) {
-        this.appHandler = new AppRefreshTokenHandler(tokens, refreshTokens, dateTime, uow, logger);
-    }
+  constructor(
+    @Inject(TOKEN_SERVICE) tokens: ITokenService,
+    @Inject(REFRESH_TOKEN_REPOSITORY) refreshTokens: IRefreshTokenRepository,
+    @Inject(DATE_TIME) dateTime: IDateTime,
+    @Inject(UNIT_OF_WORK) uow: IUnitOfWork,
+    @Inject(LOGGER) logger: ILogger,
+  ) {
+    this.appHandler = new AppRefreshTokenHandler(
+      tokens,
+      refreshTokens,
+      dateTime,
+      uow,
+      logger,
+    );
+  }
 
-    async execute(command: RefreshTokenCommand): Promise<AuthResultDto> {
-        try {
-            return await this.appHandler.execute(command);
-        } catch (error: any) {
-            mapAppErrorToHttp(error);
-            return Promise.reject(error);
-        }
+  async execute(command: RefreshTokenCommand): Promise<AuthResultDto> {
+    try {
+      return await this.appHandler.execute(command);
+    } catch (error: any) {
+      mapAppErrorToHttp(error);
+      return Promise.reject(error);
     }
+  }
 }
-
-

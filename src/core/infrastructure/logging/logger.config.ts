@@ -9,66 +9,58 @@ const { combine, timestamp, printf, colorize, json } = format;
 const appVersion = require('../../../../package.json').version;
 
 export const logLevels = {
-    fatal: 0,
-    error: 1,
-    warn: 2,
-    info: 3,
-    debug: 4,
+  fatal: 0,
+  error: 1,
+  warn: 2,
+  info: 3,
+  debug: 4,
 };
 
+winston.addColors({
+  fatal: 'red bold',
+  error: 'red',
+  warn: 'yellow',
+  info: 'green',
+  debug: 'blue dim',
+});
+
 const customFormat = printf(({ level, message, timestamp, ...metadata }) => {
-    const logObject = {
-        timestamp,
-        level,
-        message,
-        ...metadata,
-        environment: process.env.NODE_ENV || 'development',
-        version: appVersion,
-        hostname: os.hostname(),
-    };
-    return JSON.stringify(logObject);
+  const logObject = {
+    timestamp,
+    level,
+    message,
+    ...metadata,
+    environment: process.env.NODE_ENV || 'development',
+    version: appVersion,
+    hostname: os.hostname(),
+  };
+  return JSON.stringify(logObject);
 });
 
 const fileRotateTransport = new winston.transports.DailyRotateFile({
-    filename: path.join('logs', 'application-%DATE%.log'),
-    datePattern: 'YYYY-MM-DD',
-    maxSize: '50m',
-    maxFiles: '30d',
-    zippedArchive: true,
-    format: combine(
-        timestamp({ format: 'YYYY-MM-DD HH:mm:ss.SSS' }),
-        json(),
-    ),
+  filename: path.join('logs', 'application-%DATE%.log'),
+  datePattern: 'YYYY-MM-DD',
+  maxSize: '50m',
+  maxFiles: '30d',
+  zippedArchive: true,
+  format: combine(timestamp({ format: 'YYYY-MM-DD HH:mm:ss.SSS' }), json()),
 });
 
 const consoleTransport = new winston.transports.Console({
-    format: combine(
-        colorize(),
-        timestamp({ format: 'YYYY-MM-DD HH:mm:ss.SSS' }),
-        customFormat,
-    ),
+  format: combine(
+    colorize({ level: true }), // yalnızca level'ı renklendir
+    timestamp({ format: 'YYYY-MM-DD HH:mm:ss.SSS' }),
+    customFormat
+  ),
 });
 
-const seqTransport = process.env.SEQ_SERVER_URL
-    ? new winston.transports['@datalust/winston-seq']({
-        serverUrl: process.env.SEQ_SERVER_URL,
-        apiKey: process.env.SEQ_API_KEY,
-        handleExceptions: true,
-        handleRejections: true,
-    })
-    : null;
-
 export const loggerConfig: LoggerOptions = {
-    levels: logLevels,
-    level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
-    transports: [
-        consoleTransport,
-        fileRotateTransport,
-        ...(seqTransport ? [seqTransport] : []),
-    ],
-
-    handleExceptions: true,
-    handleRejections: true,
-
-    exitOnError: false,
+  levels: logLevels,
+  level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
+  transports: [consoleTransport, fileRotateTransport],
+  handleExceptions: true,
+  handleRejections: true,
+  exitOnError: false,
 };
+
+export default loggerConfig;

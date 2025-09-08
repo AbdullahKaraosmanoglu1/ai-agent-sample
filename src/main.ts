@@ -12,7 +12,9 @@ async function bootstrap() {
 
   const config = new DocumentBuilder()
     .setTitle('API Documentation')
-    .setDescription('The API documentation for the authentication and user management system')
+    .setDescription(
+      'The API documentation for the authentication and user management system',
+    )
     .setVersion('1.0')
     .addTag('auth', 'Authentication endpoints')
     .addTag('users', 'User management endpoints')
@@ -21,7 +23,7 @@ async function bootstrap() {
         type: 'http',
         scheme: 'bearer',
         bearerFormat: 'JWT',
-        in: 'header'
+        in: 'header',
       },
       'access-token',
     )
@@ -30,7 +32,7 @@ async function bootstrap() {
         type: 'http',
         scheme: 'bearer',
         bearerFormat: 'JWT',
-        in: 'header'
+        in: 'header',
       },
       'refresh-token',
     )
