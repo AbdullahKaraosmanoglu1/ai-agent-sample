@@ -18,14 +18,12 @@ describe('Authentication (e2e)', () => {
         app = moduleFixture.createNestApplication();
         prisma = app.get<PrismaService>(PrismaService);
 
-        // Clean database before tests
         await cleanDatabase(prisma);
 
         await app.init();
     });
 
     it('should register -> login -> access protected route', async () => {
-        // 1. Register a test user
         const registerResponse = await request(app.getHttpServer())
             .post('/auth/register')
             .send({
@@ -36,7 +34,6 @@ describe('Authentication (e2e)', () => {
             });
         expect(registerResponse.status).toBe(201);
 
-        // 2. Login to get tokens
         const loginResponse = await request(app.getHttpServer())
             .post('/auth/login')
             .send({
@@ -47,12 +44,10 @@ describe('Authentication (e2e)', () => {
         expect(loginResponse.body.accessToken).toBeDefined();
         accessToken = loginResponse.body.accessToken;
 
-        // 3. Try protected route without token (should fail)
         const unauthorizedResponse = await request(app.getHttpServer())
             .get('/users');
         expect(unauthorizedResponse.status).toBe(401);
 
-        // 4. Try protected route with token (should succeed)
         const authorizedResponse = await request(app.getHttpServer())
             .get('/users')
             .set('Authorization', `Bearer ${accessToken}`);

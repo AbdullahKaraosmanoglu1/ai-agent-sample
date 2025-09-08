@@ -1,12 +1,11 @@
-// Define base JWT payload interface with common JWT claims
 export interface JwtPayloadBase {
-    iss?: string;    // issuer
-    sub?: string;    // subject
-    aud?: string;    // audience
-    exp?: number;    // expiration time
-    nbf?: number;    // not before
-    iat?: number;    // issued at
-    jti?: string;    // JWT ID
+    iss?: string;
+    sub?: string;
+    aud?: string;
+    exp?: number;
+    nbf?: number;
+    iat?: number;
+    jti?: string;
 }
 
 export interface JwtAccessPayload extends JwtPayloadBase {

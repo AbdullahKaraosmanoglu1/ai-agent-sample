@@ -5,5 +5,5 @@ export interface IRefreshTokenRepository {
     findByJti(jti: string): Promise<RefreshToken | null>;
     revoke(jti: string): Promise<void>;
     revokeAllForUser(userId: string): Promise<void>;
-    cleanup(): Promise<void>; // Remove expired tokens
+    cleanup(): Promise<void>;
 }

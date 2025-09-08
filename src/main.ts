@@ -7,11 +7,9 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Set up global logging interceptor
   const logger = await app.resolve(LoggerService);
   app.useGlobalInterceptors(new LoggingInterceptor(logger));
 
-  // Setup Swagger
   const config = new DocumentBuilder()
     .setTitle('API Documentation')
     .setDescription('The API documentation for the authentication and user management system')

@@ -6,10 +6,8 @@ import * as path from 'path';
 
 const { combine, timestamp, printf, colorize, json } = format;
 
-// Get application version from package.json
 const appVersion = require('../../../../package.json').version;
 
-// Custom log levels
 export const logLevels = {
     fatal: 0,
     error: 1,
@@ -18,7 +16,6 @@ export const logLevels = {
     debug: 4,
 };
 
-// Create custom Winston format
 const customFormat = printf(({ level, message, timestamp, ...metadata }) => {
     const logObject = {
         timestamp,
@@ -32,7 +29,6 @@ const customFormat = printf(({ level, message, timestamp, ...metadata }) => {
     return JSON.stringify(logObject);
 });
 
-// File transport configuration
 const fileRotateTransport = new winston.transports.DailyRotateFile({
     filename: path.join('logs', 'application-%DATE%.log'),
     datePattern: 'YYYY-MM-DD',
@@ -45,7 +41,6 @@ const fileRotateTransport = new winston.transports.DailyRotateFile({
     ),
 });
 
-// Console transport configuration
 const consoleTransport = new winston.transports.Console({
     format: combine(
         colorize(),
@@ -54,7 +49,6 @@ const consoleTransport = new winston.transports.Console({
     ),
 });
 
-// SEQ transport configuration (if enabled)
 const seqTransport = process.env.SEQ_SERVER_URL
     ? new winston.transports['@datalust/winston-seq']({
         serverUrl: process.env.SEQ_SERVER_URL,
@@ -64,7 +58,6 @@ const seqTransport = process.env.SEQ_SERVER_URL
     })
     : null;
 
-// Winston logger configuration
 export const loggerConfig: LoggerOptions = {
     levels: logLevels,
     level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
@@ -73,9 +66,9 @@ export const loggerConfig: LoggerOptions = {
         fileRotateTransport,
         ...(seqTransport ? [seqTransport] : []),
     ],
-    // Handle uncaught exceptions and unhandled rejections
+
     handleExceptions: true,
     handleRejections: true,
-    // Prevent logger from exiting on error
+
     exitOnError: false,
 };

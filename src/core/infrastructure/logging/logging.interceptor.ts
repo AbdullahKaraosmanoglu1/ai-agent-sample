@@ -26,7 +26,6 @@ export class LoggingInterceptor implements NestInterceptor {
             userAgent,
         };
 
-        // Log the incoming request
         this.logger.info(`Incoming ${method} ${url}`, {
             ...requestMetadata,
             type: 'request',
@@ -36,7 +35,6 @@ export class LoggingInterceptor implements NestInterceptor {
         return next.handle().pipe(
             tap({
                 next: (response) => {
-                    // Log successful response
                     this.logger.info(`${method} ${url} completed`, {
                         ...requestMetadata,
                         type: 'response',
@@ -45,7 +43,6 @@ export class LoggingInterceptor implements NestInterceptor {
                     });
                 },
                 error: (error) => {
-                    // Log error response
                     this.logger.error(`${method} ${url} failed`, error, {
                         ...requestMetadata,
                         type: 'response',

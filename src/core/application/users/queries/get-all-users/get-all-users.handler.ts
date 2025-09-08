@@ -1,10 +1,11 @@
 import { QueryHandler, IQueryHandler } from '@nestjs/cqrs';
 import { Inject } from '@nestjs/common';
 import { GetAllUsersQuery } from './get-all-users.query';
-import type { IUserRepository } from 'src/core/application/ports/user-repository.port';
-import { UserDto } from 'src/core/application/dto/user.dto';
-import { UserMapper } from 'src/core/application/mapping/user.mapper';
-import { USER_REPOSITORY } from 'src/core/application/ports/tokens';
+import type { IUserRepository } from '../../../ports/user-repository.port';
+import { UserDto } from '../../../dto/user.dto';
+import { UserMapper } from '../../../mapping/user.mapper';
+import { USER_REPOSITORY } from '../../../ports/tokens';
+
 
 @QueryHandler(GetAllUsersQuery)
 export class GetAllUsersHandler implements IQueryHandler<GetAllUsersQuery, UserDto[]> {

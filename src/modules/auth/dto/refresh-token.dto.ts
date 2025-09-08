@@ -3,9 +3,9 @@ import { IsOptional, IsString } from 'class-validator';
 export class RefreshTokenDto {
     @IsString()
     @IsOptional()
-    refreshToken?: string; // From request body
+    refreshToken?: string;
 
     @IsString()
     @IsOptional()
-    cookie?: string; // From cookie if using cookie-based refresh tokens
+    cookie?: string;
 }

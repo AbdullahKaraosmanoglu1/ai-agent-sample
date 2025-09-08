@@ -19,7 +19,6 @@ export class JwtRefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh'
     }
 
     validate(payload: any) {
-        // Return the payload which will be available in the Request
         return payload;
     }
 }

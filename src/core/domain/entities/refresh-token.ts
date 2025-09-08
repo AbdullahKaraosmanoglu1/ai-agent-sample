@@ -1,6 +1,6 @@
 export class RefreshToken {
     constructor(
-        public readonly id: string, // jti - JWT Token ID
+        public readonly id: string,
         public readonly userId: string,
         public readonly expiresAt: Date,
         public readonly revoked: boolean,
@@ -16,7 +16,7 @@ export class RefreshToken {
             jti,
             userId,
             expiresAt,
-            false, // not revoked when created
+            false,
             new Date()
         );
     }
@@ -42,7 +42,7 @@ export class RefreshToken {
             this.id,
             this.userId,
             this.expiresAt,
-            true, // revoked
+            true,
             this.createdAt
         );
     }

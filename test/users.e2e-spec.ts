@@ -29,13 +29,11 @@ describe('UsersController (e2e)', () => {
         app = moduleFixture.createNestApplication();
         prisma = app.get<PrismaService>(PrismaService);
 
-        // Clean database before tests
         console.log('🧹 Cleaning test database...');
         await cleanDatabase(prisma);
 
         await app.init();
 
-        // Register and login a test user to get the access token
         const registerResponse = await request(app.getHttpServer())
             .post('/auth/register')
             .send(testUser);
@@ -155,7 +153,6 @@ describe('UsersController (e2e)', () => {
 
             console.log('Update response:', JSON.stringify(response.body, null, 2));
 
-            // Verify the update
             const updatedUser = await request(app.getHttpServer())
                 .get('/users/' + createdUserId)
                 .set('Authorization', `Bearer ${accessToken}`)
@@ -193,7 +190,6 @@ describe('UsersController (e2e)', () => {
 
             console.log('User deleted successfully');
 
-            // Verify deletion
             console.log('Verifying user deletion...');
             await request(app.getHttpServer())
                 .get('/users/' + createdUserId)

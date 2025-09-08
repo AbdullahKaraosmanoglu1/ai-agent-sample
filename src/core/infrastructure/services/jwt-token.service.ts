@@ -48,7 +48,6 @@ export class JwtTokenService implements ITokenService {
         }
 
         if (!refreshToken.isValid()) {
-            // Eğer token geçersizse veritabanından temizle
             await this.refreshTokenRepository.revoke(token);
             throw new UnauthorizedException(
                 refreshToken.revoked

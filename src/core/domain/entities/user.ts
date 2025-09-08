@@ -1,6 +1,3 @@
-// Domain Entity: User
-// Clean Architecture: Domain katmanı, dış bağımlılık yok
-
 export class User {
     private constructor(
         public readonly id: string,
@@ -13,7 +10,7 @@ export class User {
 
     static createNew(email: string, passwordHash: string, firstName: string, lastName: string): User {
         return new User(
-            '', // id Prisma tarafından atanacak
+            '',
             email,
             passwordHash,
             firstName,

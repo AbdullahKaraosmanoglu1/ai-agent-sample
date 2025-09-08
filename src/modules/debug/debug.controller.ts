@@ -20,7 +20,6 @@ export class DebugController {
 
     @Get('logs')
     testAllLevels(@Headers('x-correlation-id') correlationId: string) {
-        // Test all log levels
         this.logger.debug('This is a debug message', {
             testId: 'debug-level',
             correlationId
@@ -52,7 +51,6 @@ export class DebugController {
     @Get('error')
     testError() {
         try {
-            // Simulate a deep error
             throw new Error('Simulated deep error for testing');
         } catch (error) {
             this.logger.error('Deep error occurred', error, {
@@ -67,7 +65,6 @@ export class DebugController {
         const startTime = process.hrtime();
         const delay = parseInt(milliseconds) || 500;
 
-        // Simulate slow operation
         await new Promise(resolve => setTimeout(resolve, delay));
 
         const [seconds, nanoseconds] = process.hrtime(startTime);
@@ -91,7 +88,6 @@ export class DebugController {
 
     @Post('masked')
     testDataMasking(@Body() sensitiveData: SensitiveData) {
-        // Log with proper masking of sensitive data
         this.logger.info('Processing sensitive data', {
             data: {
                 username: sensitiveData.username,

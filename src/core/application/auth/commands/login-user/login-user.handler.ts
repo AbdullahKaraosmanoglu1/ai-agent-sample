@@ -1,15 +1,25 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { UnauthorizedException, Inject } from '@nestjs/common';
 import { LoginUserCommand } from './login-user.command';
-import type { IUserRepository } from 'src/core/application/ports/user-repository.port';
-import type { IPasswordHasher } from 'src/core/application/ports/password-hasher.port';
-import type { ITokenService } from 'src/core/application/ports/token-service.port';
-import type { IRefreshTokenRepository } from 'src/core/application/ports/refresh-token-repository.port';
-import type { IDateTime } from 'src/core/application/ports/datetime.port';
-import { AuthResultDto } from 'src/core/application/dto/auth-result.dto';
-import { RefreshToken } from 'src/core/domain/entities/refresh-token';
-import { USER_REPOSITORY, PASSWORD_HASHER, TOKEN_SERVICE, REFRESH_TOKEN_REPOSITORY, DATE_TIME } from 'src/core/application/ports/tokens';
+
+import type { IUserRepository } from '../../../ports/user-repository.port';
+import type { IPasswordHasher } from '../../../ports/password-hasher.port';
+import type { ITokenService } from '../../../ports/token-service.port';
+import type { IRefreshTokenRepository } from '../../../ports/refresh-token-repository.port';
+import type { IDateTime } from '../../../ports/datetime.port';
+
+import { AuthResultDto } from '../../../dto/auth-result.dto';
+import { RefreshToken } from '../../../../domain/entities/refresh-token';
+import {
+    USER_REPOSITORY,
+    PASSWORD_HASHER,
+    TOKEN_SERVICE,
+    REFRESH_TOKEN_REPOSITORY,
+    DATE_TIME,
+} from '../../../ports/tokens';
+
 import { randomUUID } from 'crypto';
+
 
 @CommandHandler(LoginUserCommand)
 export class LoginUserHandler implements ICommandHandler<LoginUserCommand, AuthResultDto> {
@@ -36,19 +46,14 @@ export class LoginUserHandler implements ICommandHandler<LoginUserCommand, AuthR
         if (!isValid) {
             throw new UnauthorizedException('Invalid credentials');
         }
-
-        // Generate access token
         const accessToken = await this.tokens.signAccessToken({ sub: user.id });
 
-        // Revoke all existing refresh tokens for this user
         await this.refreshTokens.revokeAllForUser(user.id);
 
-        // Generate new refresh token with JTI and store in database
         const jti = randomUUID();
-        const expiresAt = this.dateTime.addDays(this.dateTime.now(), 14); // 14 days
+        const expiresAt = this.dateTime.addDays(this.dateTime.now(), 14);
         await this.refreshTokens.create(RefreshToken.createNew(jti, user.id, expiresAt));
 
-        // Get the token string
         const refreshToken = await this.tokens.signRefreshToken({
             sub: user.id,
             jti: jti
@@ -57,7 +62,7 @@ export class LoginUserHandler implements ICommandHandler<LoginUserCommand, AuthR
         return {
             accessToken,
             refreshToken,
-            expiresIn: 900, // 15 minutes in seconds
+            expiresIn: 900,
         };
     }
 }
